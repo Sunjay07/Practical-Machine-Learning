@@ -1,0 +1,179 @@
+## Practical Machine Learning
+
+##	Class Project 
+
+## Submitted by 	-Sanjay Verma
+## Date		-25th OCT, 2014
+
+#	We are required to create a report describing how the model was built, how the 
+#	cross validation was performed, what is the expected out of sample error and 
+#	explain the choices we make to support our analysis.
+#	The data for this project came from a fitness club in Rio, participating in the  
+#	Human activity project (http://groupware.les.inf.puc-rio.br/har) .Six volunteers have 
+#	provided us the data from the devices they are wearing while they exercise.
+#	The goal of this prject is to predict the manner in which they exercised. This is #	the “classe” variable in the training set. 
+
+
+
+##################################################################################
+
+## 	STEP 0 : set working directory
+
+setwd("C:/Users/Sunjay007/Desktop/John_Hopkins/Pratical_Machine_Learning/Project")
+
+
+##	The following script is used to download the files and store them in working 
+##	directory
+
+#	Download the files as required (29MB)
+
+set.seed(123) 
+
+if (!file.exists("data")) {
+
+dir.create("data")
+}
+
+## 		STEP1 : Download the files into the working directory
+
+
+dateDownloaded <- date()
+
+## 		STEP2 : Examine the data set to ensure it is tidy data
+
+install.packages("rattle", repos="http://rattle.togaware.com", type="source") 
+$ wget http://togaware.com/access/rattle_3.3.1.tar.gz
+##	After having examined the statistical and visual summary provided by the Rattle package, the 
+##	data was found to be not tidy. Several columns had a lot of missing values (NA). Since 
+##	this is a large dataset, I have decided to remove the columns with missing values.
+
+##	STEP3:	prepare the data
+##	divide data into 10 parts, 9 for training, 1 for cross validation
+
+##	Load the training dataset
+training <- read.csv("pml-training.csv", stringsAsFactors = FALSE) 
+testing <- read.csv("pml-testing.csv", stringsAsFactors = FALSE)
+
+##	STEP 4:	The next step was to load the CARET library
+install.packages(“caret”)
+## Loading required package: lattice 
+## Loading required package: ggplot2
+
+##	STEP 5:	The next step was to detect and eliminate columns with a lot of missing values:
+NAs <- apply(training, 2, function(x) { sum(is.na(x)) })
+
+##	STEP 6: Create ‘FOLDs’ for cross validation, decide which data to hold out and split the dataset 
+
+folds <- createFolds(y = training$classe, k = 10, list = FALSE) 
+training_trainset <- training[folds != 10, ] 
+training_testset <- training[folds == 10, ]
+##	experiment with 1%, 10%, 50%, 100% of data for training
+# ratio = 0.01 ratio = 0.10 ratio = 0.5 ratio = 1.0 
+inTrain <- createDataPartition(y = training_trainset$classe, p = ratio, list = FALSE) 
+inTest <- createDataPartition(y = training_testset$classe, p = ratio, list = FALSE)
+##	take non-NA numeric/integer column 8,9,10,11,… as predictor, 
+##	classe as outcome
+nIndex = 1
+j = 1
+predictor = vector("numeric", length = 0)
+for (I in training) {
+if (nIndex >= 7 && (class(i) == "numeric" ||
+class(i) == "integer") && sum(is.na(i)) ==
+0)	  {
+Predictor[j] <- nIndex
+J = j + 1
+}
+nIndex = nIndex + 1
+}
+training_trainset_predictor <- training_trainset[inTrain,c(8:11,160)]
+training_testset_predictor <- training_testset[inTrain,c(8:11,160)]
+training_trainset_predictor <- training_trainset[inTrain,c(predictor,160)]
+training_testset_predictor <- training_testset[inTest,c(predictor,160)]
+training_predictor <- testing[,c(predictor,160)]
+
+##	transform classe into factor
+Training_trainset_predictor <- transform(training_trainset_predictor, classe = as.factor(classe)) 
+Training_testset_predictor <- transform(training_testset_predictor, classe = as.factor(classe)) 
+
+Training
+## 	Apply “Tree Classification”
+set.seed(123)
+modelFit <- train(classe ~ ., method = "rpart", data = training_trainset_predictor
+
+## Loading required package: rpart
+##  print(modelFit$finalModel)
+
+## n= 8831 
+## 
+## node), split, n, loss, yval, (yprob) 
+## * denotes terminal node 
+## 
+## 1) root 8831 6320 A (0.28 0.19 0.17 0.16 0.18) 
+## 2) roll_belt< 130.5 8107 5606 A (0.31 0.21 0.19 0.18 0.11) 
+## 4) pitch_forearm< -26.75 808 33 A (0.96 0.041 0 0 0) * 
+## 5) pitch_forearm>=-26.75 7299 5573 A (0.24 0.23 0.21 0.2 0.12) 
+## 10) num_window>=45.5 6956 5230 A (0.25 0.24 0.22 0.2 0.092) 
+## 20) num_window< 241.5 1604 762 A (0.52 0.12 0.11 0.19 0.06) * 
+## 21) num_window>=241.5 5352 3869 B (0.17 0.28 0.25 0.2 0.1) 
+## 42) magnet_dumbbell_z< -24.5 1456 781 A (0.46 0.36 0.046 0.12 0.0096)
+## 84) num_window< 686.5 677 123 A (0.82 0.14 0.0044 0.03 0.0074) * 
+## 85) num_window>=686.5 779 352 B (0.16 0.55 0.082 0.2 0.012) * 
+## 43) magnet_dumbbell_z>=-24.5 3896 2599 C (0.054 0.25 0.33 0.23 0.14) 
+## 86) magnet_dumbbell_x< -446.5 2769 1540 C (0.061 0.16 0.44 0.25 0.084) * 
+## 87) magnet_dumbbell_x>=-446.5 1127 602 B (0.036 0.47 0.06 0.18 0.26) * 
+## 11) num_window< 45.5 343 72 E (0 0 0 0.21 0.79) * 
+## 3) roll_belt>=130.5 724 10 E (0.014 0 0 0 0.99) *
+
+Inside Test
+y1 <- predict(modelFit, newdata = training_trainset_predictor) table(training_trainset_predictor$classe)
+
+## 
+## A B C D E 
+## 2511 1709 1540 1448 1623
+
+Table(y1)
+## 
+## FALSE TRUE 
+## 3494 5337
+
+Train Set Accuracy
+table(y1 == training_trainset_predictor$classe)[2]/sum(table(y1 == training_trainset_predictor$classe))
+## TRUE 
+## 0.6043
+
+Cross Validation
+The selection of predictor might not be suitable to outside test set, so apply cross validation to see the out of sample error
+y2 <- predict(modelFit, newdata = training_testset_predictor) table(training_testset_predictor$classe)
+## 
+## A B C D E 
+## 279 190 171 161 181
+
+Table(y2) 
+## y2 
+## A B C D E 
+## 343 220 297 0 122
+table(y2 == training_testset_predictor$classe)
+## 
+## FALSE TRUE 
+## 393 589
+
+Cross Validation Set Accuracy
+table(y2 == training_testset_predictor$classe)[2]/sum(table(y2 == training_testset_predictor$classe))
+## TRUE 
+## 0.5998
+
+Outside Test
+y3 <- predict(modelFit, newdata = testing_predictor) table(y3)
+## y3 
+## A B C D E 
+## 11 3 6 0 0
+Prediction Outcome
+
+Y3
+## [1] A A A A A C C C A A C C B A C B A A A B 
+## Levels: A B C D E
+
+
+
+
+
